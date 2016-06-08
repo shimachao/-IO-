@@ -27,30 +27,36 @@ poller.register(sys.stdin, READ_ONLY)
 client_socket = None
 
 fd_to_sokcet = {server_socket.fileno(): server_socket}
-while True:
-    # 轮询
-    events = poller.poll()
-    for fd, flag in events:
-        if fd == server_socket.fileno() and (flag & READ_ONLY):
-            # 处理新来的连接
-            client_socket , client_address = server_socket.accept()
-            print('收到来自', client_address, '的连接')
-            # 将新创建的客户端连接socket加入到监听中
-            poller.register(client_socket, READ_ONLY)
-            
-        elif fd == sys.stdin.fileno() and (flag & READ_ONLY):
-            # 接收控制台输入
-            msg_to_send = sys.stdin.readline().encode()
-            # 发送给对方
-            client_socket.send(msg_to_send)
-            
-        else:
-            # 处理连接上的可读
-            if flag & READ_ONLY:
-                msg = client_socket.recv(64)
-                if len(msg) == 0:
-                    poller.unregister(client_socket)
-                    client_socket.close()
-                    client_socket = None
-                else:
-                    print("收到:", msg.decode())
+
+try:
+    while True:
+        # 轮询
+        events = poller.poll()
+        for fd, flag in events:
+            if fd == server_socket.fileno() and (flag & READ_ONLY):
+                # 处理新来的连接
+                client_socket , client_address = server_socket.accept()
+                print('收到来自', client_address, '的连接')
+                # 将新创建的客户端连接socket加入到监听中
+                poller.register(client_socket, READ_ONLY)
+                
+            elif fd == sys.stdin.fileno() and (flag & READ_ONLY):
+                # 接收控制台输入
+                msg_to_send = sys.stdin.readline().encode()
+                # 发送给对方
+                client_socket.send(msg_to_send)
+                
+            else:
+                # 处理连接上的可读
+                if flag & READ_ONLY:
+                    msg = client_socket.recv(64)
+                    if len(msg) == 0:
+                        poller.unregister(client_socket)
+                        client_socket.close()
+                        client_socket = None
+                    else:
+                        print("收到:", msg.decode())
+except KeyboardInterrupt:
+    server_socket.close()
+    if client_socket:
+        client_socket.close()
