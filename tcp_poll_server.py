@@ -44,7 +44,8 @@ try:
                 # 接收控制台输入
                 msg_to_send = sys.stdin.readline().encode()
                 # 发送给对方
-                client_socket.send(msg_to_send)
+                if client_socket:
+                    client_socket.send(msg_to_send)
                 
             else:
                 # 处理连接上的可读

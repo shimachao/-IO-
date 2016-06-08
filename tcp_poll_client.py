@@ -28,12 +28,12 @@ try:
             if fd == sys.stdin.fileno():
                 # 读取标准输入，然后发送给服务端
                 msg = sys.stdin.readline().encode()
-                client_socket.send(msg)
+                if client_socket:
+                    client_socket.send(msg)
             elif fd == client_socket.fileno():
                 # 从socket读入
                 msg = client_socket.recv(64)
                 if len(msg) == 0:
-                    client_socket.close()
                     poller.unregister(client_socket)
                     client_socket.close()
                     break
