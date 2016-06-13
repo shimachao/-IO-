@@ -26,6 +26,7 @@ def epoll_loop():
                 client_socket, client_addr = server_socket.accept()
                 client_socket.setblocking(False)
                 epoll_obj.register(client_socket, select.EPOLLIN)
+                print('收到来自', client_addr, '的连接')
             # 处理用户输入
             elif fd == sys.stdin.fileno():
                 msg = sys.stdin.read()
@@ -35,6 +36,7 @@ def epoll_loop():
             elif fd == client_socket.fileno():
                 msg = client_socket.recv(16)
                 if len(msg) == 0:
+                    print(client_socket.getpeername(), '关闭了连接')
                     client_socket.close()
                     epoll_obj.unregister(fd)
                     client_socket = None
