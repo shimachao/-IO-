@@ -3,6 +3,8 @@
 import select
 import socket
 import sys
+import fcntl
+import os
 
 class Close_exception(Exception):
     def __str__(self):
@@ -12,6 +14,8 @@ def epoll_loop():
     global epoll_obj
     global client_socket
     epoll_obj.register(client_socket, select.EPOLLIN)
+    fl = fcntl.fcntl(sys.stdin.fileno(), fcntl.F_GETFL)
+    fcntl.fcntl(sys.stdin.fileno(), fcntl.F_SETFL, fl | os.O_NONBLOCK)
     epoll_obj.register(sys.stdin, select.EPOLLIN)
     
     while True:
@@ -28,7 +32,7 @@ def epoll_loop():
                     msg = ''
             # 处理用户输入
             else:
-                msg = sys.stdin.readline()
+                msg = sys.stdin.read()
             if client_socket:
                 client_socket.send(msg.encode())
                     
